@@ -1,0 +1,49 @@
+<!doctype html>
+<html>
+<head>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Newco Quote Generator</title>
+  <style>
+    body { font-family: system-ui, Arial; padding: 16px; max-width: 720px; margin: 0 auto; }
+    input { width: 100%; padding: 12px; margin: 6px 0; font-size: 16px; }
+    .row { display: flex; gap: 8px; }
+    .row > div { flex: 1; }
+    button { padding: 12px 14px; font-size: 16px; margin-top: 10px; }
+    .item { border: 1px solid #ddd; padding: 10px; margin: 10px 0; border-radius: 8px; }
+  </style>
+</head>
+<body>
+  <h2>Generate Quote</h2>
+
+  <form method="POST" action="/generate">
+    <label>Job number</label>
+    <input name="job_number" placeholder="e.g. WO-12345" required />
+
+    <div id="items"></div>
+
+    <button type="button" onclick="addItem()">+ Add line item</button>
+    <button type="submit">Generate PDF</button>
+  </form>
+
+  <script>
+    function addItem() {
+      const wrap = document.getElementById("items");
+      const div = document.createElement("div");
+      div.className = "item";
+      div.innerHTML = `
+        <label>Description</label>
+        <input name="description[]" placeholder="e.g. Replace coin mech" required />
+        <div class="row">
+          <div>
+            <label>Estimated Hours</label>
+            <input name="hours[]" type="number" step="0.25" min="0" value="1" required />
+          </div>
+        </div>
+        <button type="button" onclick="this.parentElement.remove()">Remove</button>
+      `;
+      wrap.appendChild(div);
+    }
+    addItem();
+  </script>
+</body>
+</html>
