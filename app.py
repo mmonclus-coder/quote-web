@@ -46,10 +46,10 @@ def generate():
     due = mmddyyyy(date.today() + timedelta(days=14))
 
     if existing_quote_no:
-    quote_no_text = existing_quote_no
+        quote_no_text = existing_quote_no
     else:
-    n = next_quote_no()
-    quote_no_text = f"S{n:03d}"
+        n = next_quote_no()
+        quote_no_text = f"S{n:03d}"
 
 
     fd, path = tempfile.mkstemp(suffix=".pdf")
