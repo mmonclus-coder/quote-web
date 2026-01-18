@@ -23,10 +23,9 @@ def form():
 
 
 @app.route("/generate", methods=["POST"])
-
-existing_quote_no = (request.form.get("quote_no") or "").strip()
-
+                
 def generate():
+    existing_quote_no = (request.form.get("quote_no") or "").strip()
     job_number = (request.form.get("job_number") or "").strip()
 
     descriptions = request.form.getlist("description[]")
