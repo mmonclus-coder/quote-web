@@ -2,10 +2,10 @@ import os
 import tempfile
 from datetime import date, timedelta
 
-from flask import Flask, render_template, request, send_file, redirect, url_for
+from flask import Flask, render_template, request, send_file
 from dotenv import load_dotenv
 
-from db import init_db, next_quote_no, save_quote, load_quote
+from db import init_db, next_quote_no
 
 from quote_pdf import QuoteItem, render_quote_pdf, UNIT_PRICE
 
@@ -25,7 +25,6 @@ def form():
 @app.route("/generate", methods=["POST"])
                 
 def generate():
-    existing_quote_no = (request.form.get("quote_no") or "").strip()
     job_number = (request.form.get("job_number") or "").strip()
 
     descriptions = request.form.getlist("description[]")
@@ -45,11 +44,9 @@ def generate():
     submitted = mmddyyyy(date.today())
     due = mmddyyyy(date.today() + timedelta(days=14))
 
-    if existing_quote_no:
-        quote_no_text = existing_quote_no
-    else:
-        n = next_quote_no()
-        quote_no_text = f"S{n:03d}"
+    n = next_quote_no()
+    quote_no_text = f"S{n:03d}"
+
 
 
     fd, path = tempfile.mkstemp(suffix=".pdf")
@@ -77,29 +74,23 @@ def generate():
         total=float(total),
         )
 
+    safe_job = "".join(
+        ch for ch in job_number
+        if ch.isalnum() or ch in (" ", "-", "_")
+    ).strip()
+
+    safe_job = safe_job[:60] if safe_job else "NO_JOB"
+
+    download_name = f"Quote_{quote_no_text} - {safe_job}.pdf"
+
     return send_file(
         path,
         as_attachment=True,
-        download_name=f"Quote_{quote_no_text}.pdf",
+        download_name=download_name,
         mimetype="application/pdf",
         max_age=0,
     )
     
-    @app.get("/edit")
-    def edit_lookup():
-        return render_template("edit_lookup.html")
-    
-    @app.post("/edit")
-    def edit_lookup_post():
-        q = (request.form.get("quote_no") or "").strip()
-        return redirect(url_for("edit_quote", quote_no=q))
-    
-    @app.get("/edit/<quote_no>")
-    def edit_quote(quote_no):
-        q = load_quote(quote_no)
-        if not q:
-            return f"Quote not found: {quote_no}", 404
-        return render_template("form.html", mode="edit", quote=q)
 
 if __name__ == "__main__":
     init_db()
