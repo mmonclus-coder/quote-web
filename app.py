@@ -69,7 +69,6 @@ def generate():
     
     save_quote(
         quote_no=quote_no_text,
-        rep=(request.form.get("rep") or "").strip(),
         work_order=job_number,
         due_date=due,
         submitted_on=submitted,
