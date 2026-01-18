@@ -10,40 +10,101 @@
     .row > div { flex: 1; }
     button { padding: 12px 14px; font-size: 16px; margin-top: 10px; }
     .item { border: 1px solid #ddd; padding: 10px; margin: 10px 0; border-radius: 8px; }
+    .muted { color: #666; font-size: 14px; }
+    a { display: inline-block; margin-top: 12px; }
   </style>
 </head>
 <body>
-  <h2>Generate Quote</h2>
+
+  <h2>
+    {% if mode == "edit" %}
+      Edit Quote {{ quote.quote_no }}
+    {% else %}
+      Generate Quote
+    {% endif %}
+  </h2>
 
   <form method="POST" action="/generate">
+
+    <!-- When editing, keep the same quote number -->
+    {% if mode == "edit" and quote %}
+      <input type="hidden" name="quote_no" value="{{ quote.quote_no }}">
+      <p class="muted"><b>Editing existing quote</b></p>
+    {% endif %}
+
     <label>Job number</label>
-    <input name="job_number" placeholder="e.g. WO-12345" required />
+    <input
+      name="job_number"
+      placeholder="e.g. WO-12345"
+      required
+      value="{{ quote.work_order if quote else '' }}"
+    />
+
+    <label>Rep</label>
+    <input
+      name="rep"
+      placeholder="e.g. Miguel"
+      value="{{ quote.rep if quote else '' }}"
+    />
 
     <div id="items"></div>
 
     <button type="button" onclick="addItem()">+ Add line item</button>
-    <button type="submit">Generate PDF</button>
+    <button type="submit">
+      {% if mode == "edit" %}
+        Update PDF
+      {% else %}
+        Generate PDF
+      {% endif %}
+    </button>
   </form>
 
+  <a href="/edit">Edit another quote</a>
+
   <script>
-    function addItem() {
+    function escapeHtml(s) {
+      return String(s)
+        .replaceAll("&","&amp;")
+        .replaceAll("<","&lt;")
+        .replaceAll(">","&gt;")
+        .replaceAll('"',"&#34;")
+        .replaceAll("'","&#39;");
+    }
+
+    function addItem(desc = "", hrs = "1") {
       const wrap = document.getElementById("items");
       const div = document.createElement("div");
       div.className = "item";
       div.innerHTML = `
         <label>Description</label>
-        <input name="description[]" placeholder="e.g. Replace coin mech" required />
+        <input name="description[]" required value="${escapeHtml(desc)}" />
         <div class="row">
           <div>
             <label>Estimated Hours</label>
-            <input name="hours[]" type="number" step="0.25" min="0" value="1" required />
+            <input name="hours[]" type="number" step="0.25" min="0" value="${hrs}" required />
           </div>
         </div>
         <button type="button" onclick="this.parentElement.remove()">Remove</button>
       `;
       wrap.appendChild(div);
     }
-    addItem();
+
+    // ---------- INITIAL LOAD ----------
+    const MODE = "{{ mode }}";
+
+    {% if mode == "edit" and quote and quote.items_json %}
+      const items = {{ quote.items_json | tojson }};
+      if (Array.isArray(items) && items.length) {
+        items.forEach(it => {
+          addItem(it.description || "", it.estimated_hours ?? "1");
+        });
+      } else {
+        addItem();
+      }
+    {% else %}
+      addItem();
+    {% endif %}
   </script>
+
 </body>
 </html>
