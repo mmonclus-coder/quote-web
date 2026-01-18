@@ -51,7 +51,7 @@ def next_quote_no() -> int:
         conn.commit()
         return int(n)
 
-def save_quote(*, quote_no: str, rep: str, work_order: str, due_date: str, submitted_on: str,
+def save_quote(*, quote_no: str, rep: str = "", work_order: str, due_date: str, submitted_on: str,
               unit_price: float, items: list[dict], total: float) -> None:
     with get_conn() as conn:
         with conn.cursor() as cur:
