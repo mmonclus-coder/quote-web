@@ -5,7 +5,7 @@ from datetime import date, timedelta
 from flask import Flask, render_template, request, send_file
 from dotenv import load_dotenv
 
-from db import init_db, next_quote_no
+from db import init_db, next_quote_no, save_quote
 
 from quote_pdf import QuoteItem, render_quote_pdf, UNIT_PRICE
 
