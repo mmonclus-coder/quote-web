@@ -23,6 +23,13 @@ def init_db():
             ON CONFLICT (id) DO NOTHING;
             """)
 
+            # ✅ ONE-TIME BUMP: make sure we continue from 17 so next is 18
+            cur.execute("""
+            UPDATE quote_counter
+            SET last_quote_no = 17
+            WHERE id = 1 AND last_quote_no < 17;
+            """)
+
             cur.execute("""
             CREATE TABLE IF NOT EXISTS quotes (
               quote_no text primary key,
@@ -37,6 +44,7 @@ def init_db():
             );
             """)
         conn.commit()
+
 
 def next_quote_no() -> int:
     with get_conn() as conn:
